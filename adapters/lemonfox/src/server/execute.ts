@@ -11,7 +11,9 @@ const VALID_MODES = ["chat", "tts", "stt", "image"] as const;
 type Mode = (typeof VALID_MODES)[number];
 
 function resolveMode(config: Record<string, unknown>): Mode {
-  const m = typeof config.mode === "string" ? config.mode.toLowerCase() : "chat";
+  const raw =
+    typeof config.mode === "string" ? config.mode.trim().toLowerCase() : "";
+  const m = raw || "chat";
   if ((VALID_MODES as readonly string[]).includes(m)) return m as Mode;
   throw new Error(
     `Invalid lemonfox mode "${m}". Expected one of: ${VALID_MODES.join(", ")}`,

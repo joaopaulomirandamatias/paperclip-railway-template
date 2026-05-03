@@ -38,7 +38,9 @@ export async function testEnvironment(
     });
   }
 
-  const mode = typeof config.mode === "string" ? config.mode : "chat";
+  const modeRaw =
+    typeof config.mode === "string" ? config.mode.trim().toLowerCase() : "";
+  const mode = modeRaw || "chat";
   if (!VALID_MODES.includes(mode)) {
     checks.push({
       level: "error",
