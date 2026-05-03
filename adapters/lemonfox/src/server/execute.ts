@@ -39,6 +39,7 @@ export async function execute(
   if (ctx.onSpawn) {
     await ctx.onSpawn({
       pid: process.pid,
+      processGroupId: null,
       startedAt: new Date().toISOString(),
     });
   }
