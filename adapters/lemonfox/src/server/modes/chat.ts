@@ -131,11 +131,23 @@ export async function runChat(
     body.presence_penalty = asNum(config.presencePenalty, 0);
   if (config.stop !== undefined) body.stop = config.stop;
 
+  if (ctx.onMeta) {
+    try {
+      await ctx.onMeta({
+        provider: "lemonfox",
+        model,
+      } as Parameters<NonNullable<typeof ctx.onMeta>>[0]);
+    } catch {
+      /* onMeta is best-effort */
+    }
+  }
+
+  await ctx.onLog("stdout", `[lemonfox:chat] sending request to ${baseUrl}/chat/completions\n`);
   const startedAt = Date.now();
   const keepalive = setInterval(() => {
-    const elapsed = Math.round((Date.now() - startedAt) / 1000);
-    void ctx.onLog("stdout", `[lemonfox:chat] waiting for response... ${elapsed}s\n`);
-  }, 3000);
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+    void ctx.onLog("stdout", `[lemonfox:chat] waiting... ${elapsed}s\n`);
+  }, 1000);
 
   let data: ChatResponse;
   try {
