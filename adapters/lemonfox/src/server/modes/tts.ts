@@ -6,7 +6,12 @@ import type {
   AdapterExecutionResult,
 } from "@paperclipai/adapter-utils";
 import { renderTemplate } from "@paperclipai/adapter-utils/server-utils";
-import { postBinary, resolveApiKey, resolveBaseUrl } from "../client.js";
+import {
+  postBinary,
+  resolveApiKey,
+  resolveBaseUrl,
+  resolveTimeoutMs,
+} from "../client.js";
 
 function asNum(v: unknown, fallback: number): number {
   const n = typeof v === "number" ? v : Number(v);
@@ -41,7 +46,7 @@ export async function runTts(
   const config = (ctx.config ?? {}) as Record<string, unknown>;
   const apiKey = resolveApiKey(config);
   const baseUrl = resolveBaseUrl(config);
-  const timeoutMs = asNum(config.timeoutSec, 300) * 1000;
+  const timeoutMs = resolveTimeoutMs(config.timeoutSec, 300);
 
   const input = resolveInput(ctx);
   const voice = typeof config.voice === "string" ? config.voice : "sarah";

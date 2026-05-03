@@ -30,6 +30,21 @@ export function authHeaders(apiKey: string): Record<string, string> {
   return { Authorization: `Bearer ${apiKey}` };
 }
 
+/**
+ * HTTP client timeout in ms. Values like 0, null, "", or non-finite numbers
+ * would schedule an immediate AbortController abort; we fall back to defaultSec
+ * and enforce a 1s floor so outbound fetch never gets a 0ms timer.
+ */
+export function resolveTimeoutMs(
+  timeoutSec: unknown,
+  defaultSec: number,
+): number {
+  const n =
+    typeof timeoutSec === "number" ? timeoutSec : Number(timeoutSec);
+  const sec = Number.isFinite(n) && n > 0 ? n : defaultSec;
+  return Math.max(1000, Math.trunc(sec * 1000));
+}
+
 export interface LemonfoxJsonRequest {
   baseUrl: string;
   apiKey: string;
@@ -41,7 +56,10 @@ export interface LemonfoxJsonRequest {
 
 export async function postJson<T>(req: LemonfoxJsonRequest): Promise<T> {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), req.timeoutMs);
+  const timer = setTimeout(
+    () => ctrl.abort(),
+    Math.max(1000, req.timeoutMs),
+  );
   try {
     const res = await fetch(`${req.baseUrl}${req.path}`, {
       method: "POST",
@@ -74,7 +92,10 @@ export async function postForm(
   req: LemonfoxFormRequest,
 ): Promise<{ contentType: string; text: string; buffer: ArrayBuffer }> {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), req.timeoutMs);
+  const timer = setTimeout(
+    () => ctrl.abort(),
+    Math.max(1000, req.timeoutMs),
+  );
   try {
     const res = await fetch(`${req.baseUrl}${req.path}`, {
       method: "POST",
@@ -100,7 +121,10 @@ export async function postBinary(req: LemonfoxJsonRequest): Promise<{
   contentType: string;
 }> {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), req.timeoutMs);
+  const timer = setTimeout(
+    () => ctrl.abort(),
+    Math.max(1000, req.timeoutMs),
+  );
   try {
     const res = await fetch(`${req.baseUrl}${req.path}`, {
       method: "POST",

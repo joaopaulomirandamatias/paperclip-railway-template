@@ -4,7 +4,12 @@ import type {
   AdapterExecutionContext,
   AdapterExecutionResult,
 } from "@paperclipai/adapter-utils";
-import { postForm, resolveApiKey, resolveBaseUrl } from "../client.js";
+import {
+  postForm,
+  resolveApiKey,
+  resolveBaseUrl,
+  resolveTimeoutMs,
+} from "../client.js";
 
 function asNum(v: unknown, fallback: number): number {
   const n = typeof v === "number" ? v : Number(v);
@@ -21,7 +26,7 @@ export async function runStt(
   const config = (ctx.config ?? {}) as Record<string, unknown>;
   const apiKey = resolveApiKey(config);
   const baseUrl = resolveBaseUrl(config);
-  const timeoutMs = asNum(config.timeoutSec, 600) * 1000;
+  const timeoutMs = resolveTimeoutMs(config.timeoutSec, 600);
 
   const audioInput = typeof config.audioInput === "string" ? config.audioInput : "";
   if (!audioInput) {

@@ -6,7 +6,12 @@ import type {
   AdapterExecutionResult,
 } from "@paperclipai/adapter-utils";
 import { renderTemplate } from "@paperclipai/adapter-utils/server-utils";
-import { postJson, resolveApiKey, resolveBaseUrl } from "../client.js";
+import {
+  postJson,
+  resolveApiKey,
+  resolveBaseUrl,
+  resolveTimeoutMs,
+} from "../client.js";
 
 interface ImageResponse {
   created?: number;
@@ -46,7 +51,7 @@ export async function runImage(
   const config = (ctx.config ?? {}) as Record<string, unknown>;
   const apiKey = resolveApiKey(config);
   const baseUrl = resolveBaseUrl(config);
-  const timeoutMs = asNum(config.timeoutSec, 300) * 1000;
+  const timeoutMs = resolveTimeoutMs(config.timeoutSec, 300);
 
   const prompt = resolvePrompt(ctx);
   const negative =

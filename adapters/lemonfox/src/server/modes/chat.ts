@@ -4,7 +4,12 @@ import type {
   AdapterExecutionResult,
 } from "@paperclipai/adapter-utils";
 import { renderTemplate } from "@paperclipai/adapter-utils/server-utils";
-import { postJson, resolveApiKey, resolveBaseUrl } from "../client.js";
+import {
+  postJson,
+  resolveApiKey,
+  resolveBaseUrl,
+  resolveTimeoutMs,
+} from "../client.js";
 
 async function loadInstructionsBundle(
   config: Record<string, unknown>,
@@ -96,7 +101,7 @@ export async function runChat(
   const model = typeof config.model === "string" && config.model
     ? config.model
     : DEFAULT_MODEL;
-  const timeoutMs = asNum(config.timeoutSec, 300) * 1000;
+  const timeoutMs = resolveTimeoutMs(config.timeoutSec, 300);
 
   const history = loadHistory(ctx);
   const messages: ChatMessage[] = [...history];

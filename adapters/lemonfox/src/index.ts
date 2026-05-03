@@ -23,7 +23,7 @@ Don't use when: the agent needs tool use, MCP, or a coding-runtime
 - mode            — "chat" (default) | "tts" | "stt" | "image"
 - model           — defaults per mode (chat: llama-70b-chat)
 - baseUrl         — default https://api.lemonfox.ai/v1
-- timeoutSec      — default 300
+- timeoutSec      — default 300 (seconds; 0 / null / "" use default — avoids instant API abort)
 - promptTemplate  — supports {{taskTitle}}, {{taskBody}}, {{wakeReason}}, {{agentName}}, {{runId}}
 
 ### chat
