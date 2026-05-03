@@ -9,45 +9,33 @@ import { testEnvironment } from "./test.js";
 type ListSkills = NonNullable<ServerAdapterModule["listSkills"]>;
 type SyncSkills = NonNullable<ServerAdapterModule["syncSkills"]>;
 
-function buildSkillsResult(
-  adapterType: string,
-  desired: ReadonlyArray<Record<string, unknown>>,
-) {
-  const entries = desired.map((s) => ({
-    skillId: String(s.skillId ?? s.id ?? s.name ?? ""),
-    name: typeof s.name === "string" ? s.name : String(s.skillId ?? ""),
-    version: typeof s.version === "string" ? s.version : null,
-    status: "applied" as const,
-    source: "ephemeral" as const,
-  }));
+const listSkills: ListSkills = async (ctx) => {
+  const raw = (ctx as { desiredSkills?: unknown }).desiredSkills;
+  const ids = Array.isArray(raw)
+    ? raw.filter((x): x is string => typeof x === "string")
+    : [];
   return {
-    adapterType,
+    adapterType: ctx.adapterType,
     supported: true,
-    mode: "ephemeral" as const,
-    desiredSkills: desired,
-    entries,
+    mode: "ephemeral",
+    desiredSkills: ids,
+    entries: [],
     warnings: [],
   };
-}
-
-const listSkills: ListSkills = async (ctx) => {
-  const desired =
-    (ctx as { desiredSkills?: unknown }).desiredSkills ?? [];
-  const list = Array.isArray(desired)
-    ? (desired as Array<Record<string, unknown>>)
-    : [];
-  return buildSkillsResult(ctx.adapterType, list) as Awaited<
-    ReturnType<ListSkills>
-  >;
 };
 
 const syncSkills: SyncSkills = async (ctx, desired) => {
-  const list = Array.isArray(desired)
-    ? (desired as Array<Record<string, unknown>>)
+  const ids = Array.isArray(desired)
+    ? desired.filter((x): x is string => typeof x === "string")
     : [];
-  return buildSkillsResult(ctx.adapterType, list) as Awaited<
-    ReturnType<SyncSkills>
-  >;
+  return {
+    adapterType: ctx.adapterType,
+    supported: true,
+    mode: "ephemeral",
+    desiredSkills: ids,
+    entries: [],
+    warnings: [],
+  };
 };
 
 const sessionCodec: AdapterSessionCodec = {
