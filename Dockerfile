@@ -19,6 +19,15 @@ RUN pnpm --filter @paperclipai/plugin-sdk build
 RUN pnpm --filter @paperclipai/server build
 RUN test -f server/dist/index.js
 
+# Build the bundled Lemonfox adapter as a standalone npm package.
+FROM node:22-bookworm AS lemonfox-build
+WORKDIR /adapter
+COPY adapters/lemonfox/package.json adapters/lemonfox/tsconfig.json ./
+COPY adapters/lemonfox/src ./src
+RUN npm install --no-audit --no-fund \
+    && npm run build \
+    && npm prune --omit=dev
+
 # Runtime image (direct Paperclip server, no wrapper).
 FROM node:22-bookworm
 ENV NODE_ENV=production
@@ -43,6 +52,9 @@ RUN corepack enable
 
 WORKDIR /app
 COPY --from=paperclip-build /paperclip /app
+
+# Bundled Lemonfox adapter (lives outside /paperclip so the volume can't shadow it).
+COPY --from=lemonfox-build /adapter /opt/adapters/lemonfox
 
 WORKDIR /wrapper
 COPY package.json /wrapper/package.json
