@@ -33,6 +33,16 @@ export async function execute(
     return { exitCode: 2, signal: null, timedOut: false, errorMessage: msg };
   }
 
+  // Signal "process is alive" to Paperclip's orchestrator. Even though we
+  // don't spawn a child process, the orchestrator's run watchdog expects an
+  // onSpawn within the first second or it considers the run dead and aborts.
+  if (ctx.onSpawn) {
+    await ctx.onSpawn({
+      pid: process.pid,
+      startedAt: new Date().toISOString(),
+    });
+  }
+
   await ctx.onLog("stdout", `[lemonfox] mode=${mode}\n`);
 
   try {
