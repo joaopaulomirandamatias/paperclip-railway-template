@@ -1,9 +1,23 @@
+import { promises as fs } from "node:fs";
 import type {
   AdapterExecutionContext,
   AdapterExecutionResult,
 } from "@paperclipai/adapter-utils";
 import { renderTemplate } from "@paperclipai/adapter-utils/server-utils";
 import { postJson, resolveApiKey, resolveBaseUrl } from "../client.js";
+
+async function loadInstructionsBundle(
+  config: Record<string, unknown>,
+): Promise<string | null> {
+  const p = config.instructionsFilePath;
+  if (typeof p !== "string" || !p) return null;
+  try {
+    const content = await fs.readFile(p, "utf8");
+    return content.trim() || null;
+  } catch {
+    return null;
+  }
+}
 
 interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -86,8 +100,16 @@ export async function runChat(
 
   const history = loadHistory(ctx);
   const messages: ChatMessage[] = [...history];
-  if (messages.length === 0 && typeof config.systemPrompt === "string") {
-    messages.push({ role: "system", content: config.systemPrompt });
+  if (messages.length === 0) {
+    const parts: string[] = [];
+    const bundle = await loadInstructionsBundle(config);
+    if (bundle) parts.push(bundle);
+    if (typeof config.systemPrompt === "string" && config.systemPrompt) {
+      parts.push(config.systemPrompt);
+    }
+    if (parts.length > 0) {
+      messages.push({ role: "system", content: parts.join("\n\n") });
+    }
   }
   const userPrompt = buildPrompt(ctx);
   messages.push({ role: "user", content: userPrompt });

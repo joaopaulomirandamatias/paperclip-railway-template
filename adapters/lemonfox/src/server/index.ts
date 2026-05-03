@@ -37,5 +37,7 @@ export function createServerAdapter(): ServerAdapterModule {
     models,
     agentConfigurationDoc,
     sessionCodec,
+    supportsInstructionsBundle: true,
+    instructionsPathKey: "instructionsFilePath",
   };
 }
